@@ -65,49 +65,115 @@ Possible next steps:
 '''
 
 auto_thought_generation_selection_prompt_with_cot = '''
-Given the task described previously, select a thought generation method (proposition/sampling).
-proposition is a method that proposes several new thoughts at the same time by quering LLM using a single prompt (it queries the LLM once using a single prompt to get several thoughts),
-this method works better for tasks with a limited thought space that could easily generate the same or similar thoughts. For example, a single number or sentence is a type thought with limited thought space.
-sampling is a method that samples a new thought independently and identically from LLM (it queries the LLM independently several times to get several thoughts),
-this method works better for tasks with a rich thought space that could easily generate diverse thoughts. For example, a paragraph is a type thought with rich thought space.
-Please give your choice in the following format in a single word and please reach the answer step by step:
-Thought generation method: proposition/sampling
+You are tasked to select a thought generation method (proposition/sampling) based on the task description provided.
+
+**Format**:
+{
+    "thought_generation_method": "proposition" or "sampling"
+}
+
+**Example**:
+{
+    "thought_generation_method": "proposition"
+}
+
+**Task Description**:
+- **Proposition**: This method proposes several new thoughts simultaneously by querying the LLM with a single prompt. It is best suited for tasks with a limited thought space where thoughts are likely to be similar or repetitive, such as generating a single number or sentence.
+- **Sampling**: This method generates new thoughts independently and identically by querying the LLM multiple times. It is best suited for tasks with a rich thought space where thoughts are diverse, such as generating paragraphs.
+
+**Instructions**:
+- Reason step-by-step to determine the best method.
+- Provide your final choice in the specified format, strictly as shown.
+
+**Question**:
+Which thought generation method (proposition/sampling) should be chosen? Provide your answer step by step and strictly output the result in the format above.
 '''
 
 auto_thought_generation_method_selection_prompt_with_cot_and_few_shot = '''
 
 
-Given the task described previously, select a thought generation method (proposition/sampling).
-proposition is a method that proposes several new thoughts at the same time by quering LLM using a single prompt (it queries the LLM once using a single prompt to get several thoughts),
-this method works better for tasks with a limited thought space that could easily generate the same or similar thoughts. For example, a single number or sentence is a type thought with limited thought space.
-sampling is a method that samples a new thought independently and identically from LLM (it queries the LLM independently several times to get several thoughts),
-this method works better for tasks with a rich thought space that could easily generate diverse thoughts. For example, a paragraph is a type thought with rich thought space.
-Please give your choice in the following format in a single word and please reach the answer step by step:
-Thought generation method: proposition/sampling
+You are tasked to select a thought generation method (proposition/sampling) based on the task description provided.
+
+**Format**:
+{
+    "thought_generation_method": "proposition" or "sampling"
+}
+
+**Example**:
+{
+    "thought_generation_method": "proposition"
+}
+
+**Task Description**:
+- **Proposition**: This method proposes several new thoughts simultaneously by querying the LLM with a single prompt. It is best suited for tasks with a limited thought space where thoughts are likely to be similar or repetitive, such as generating a single number or sentence.
+- **Sampling**: This method generates new thoughts independently and identically by querying the LLM multiple times. It is best suited for tasks with a rich thought space where thoughts are diverse, such as generating paragraphs.
+
+**Instructions**:
+- Reason step-by-step to determine the best method.
+- Provide your final choice in the specified format, strictly as shown.
+
+**Question**:
+Which thought generation method (proposition/sampling) should be chosen? Provide your answer step by step and strictly output the result in the format above.
 '''
 
 auto_state_evaluation_method_selection_prompt_with_cot = '''
-Given the task described previously and interaction history, select a thought/state evaluation method (value/vote).
+You are tasked to select a thought/state evaluation method (value/vote) based on the task description and interaction history provided.
+
+**Format**:
+{
+    "state_evaluation_method": "value" or "vote"
+}
+
+**Example**:
+{
+    "state_evaluation_method": "value"
+}
+
+**Task Description**:
 value is a method that evaluates the current state by directly and independently scoring the current state based on how likely it is to reach the goal from the current state 
-(normaly the possible scores are sure/likely/impossible where sure means the current state is guaranteed to reach the goal and impossible means the current state is guaranteed not to reach the goal),
-this method works well for cases where the prospect of a thought/state to reach the goal is easy to be independently determined.
+(normally the possible scores are sure/likely/impossible where sure means the current state is guaranteed to reach the goal and impossible means the current state is guaranteed not to reach the goal),
+this method works well for cases where the prospect of a thought/state to reach the goal can easily be independently determined.
+
 vote is a method that evaluates the current state by voting across the thoughts/states under the current parent thought/state and then selects the one with the highest votes,
-this method works well for cases where the prospect of a thought/state to reach the goal is hard to be determined.
-Please give your choice in the following format in a single word and please reach the answer step by step:
-Thought/state evaluation method: value/vote
+this method works well for cases where the prospect of a thought/state reaching the goal is hard to be determined.
+
+**Instructions**:
+- Reason step-by-step to determine the best method.
+- Provide your final choice in the specified format, strictly as shown.
+
+**Question**:
+Which state evaluation method (value/vote) should be chosen? Provide your answer step by step and strictly output the result in the format above.
 '''
 
 auto_state_evaluation_method_selection_prompt_with_cot_and_few_shot = '''
 
 
-Given the task described previously and interaction history, select a thought/state evaluation method (value/vote).
+You are tasked to select a thought/state evaluation method (value/vote) based on the task description and interaction history provided.
+
+**Format**:
+{
+    "state_evaluation_method": "value" or "vote"
+}
+
+**Example**:
+{
+    "state_evaluation_method": "value"
+}
+
+**Task Description**:
 value is a method that evaluates the current state by directly and independently scoring the current state based on how likely it is to reach the goal from the current state 
-(normaly the possible scores are sure/likely/impossible where sure means the current state is guaranteed to reach the goal and impossible means the current state is guaranteed not to reach the goal),
-this method works well for cases where the prospect of a thought/state to reach the goal is easy to be independently determined.
+(normally the possible scores are sure/likely/impossible where sure means the current state is guaranteed to reach the goal and impossible means the current state is guaranteed not to reach the goal),
+this method works well for cases where the prospect of a thought/state to reach the goal can easily be independently determined.
+
 vote is a method that evaluates the current state by voting across the thoughts/states under the current parent thought/state and then selects the one with the highest votes,
-this method works well for cases where the prospect of a thought/state to reach the goal is hard to be determined.
-Please give your choice in the following format in a single word and please reach the answer step by step:
-Thought/state evaluation method: value/vote
+this method works well for cases where the prospect of a thought/state reaching the goal is hard to be determined.
+
+**Instructions**:
+- Reason step-by-step to determine the best method.
+- Provide your final choice in the specified format, strictly as shown.
+
+**Question**:
+Which state evaluation method (value/vote) should be chosen? Provide your answer step by step and strictly output the result in the format above.
 '''
 auto_search_method_selection_prompt_with_cot_and_few_shot = '''
 Given the task described previously and interaction history, select a search method (DFS/BFS).
