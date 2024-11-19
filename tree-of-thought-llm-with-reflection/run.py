@@ -58,6 +58,8 @@ def parse_args():
     args.add_argument('--n_generate_sample', type=int, default=1)  # only thing needed if naive_run
     args.add_argument('--n_evaluate_sample', type=int, default=1)
     args.add_argument('--n_select_sample', type=int, default=1)
+    args.add_argument('--enable_reflection', action='store_true', help='Enable reflection in Tree of Thought')
+    # Add any additional arguments you need
 
     args = args.parse_args()
     return args
