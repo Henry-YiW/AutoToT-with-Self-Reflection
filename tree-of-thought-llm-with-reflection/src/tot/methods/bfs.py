@@ -46,28 +46,54 @@ def get_samples(task, x, y, n_generate_sample, prompt_sample, stop):
     samples = gpt(prompt, n=n_generate_sample, stop=stop)
     return [y + _ for _ in samples]
 
+#For the ToT with self-reflection.
+def get_reflection(task, path, n_reflection_sample=1, cache_reflection=True):
+    reflection_prompt = task.reflection_prompt_wrap(path)
+    
+    if cache_reflection and reflection_prompt in task.reflection_cache:
+        return task.reflection_cache[reflection_prompt]
+    
+    reflections = gpt(reflection_prompt, n=n_reflection_sample, stop=None)
+    processed_reflections = task.reflection_outputs_unwrap(reflections)
+    
+    if cache_reflection:
+        task.reflection_cache[reflection_prompt] = processed_reflections
+    
+    return processed_reflections
+
+
 def solve(args, task, idx, to_print=True):
     global gpt
     gpt = partial(gpt, model=args.backend, temperature=args.temperature)
     print(gpt)
-    x = task.get_input(idx)  # input
-    ys = ['']  # current output candidates
+    
+    x = task.get_input(idx)  # Input
+    ys = ['']  # Initial candidates
     infos = []
+    if args.enable_reflection:
+        Reflection_memory = set()  # Initialize reflection memory
+    
     for step in range(task.steps):
-        # generation
+        # Generation
         if args.method_generate == 'sample':
-            new_ys = [get_samples(task, x, y, args.n_generate_sample, prompt_sample=args.prompt_sample, stop=task.stops[step]) for y in ys]
+            new_ys = [
+                get_samples(
+                    task, x, y, args.n_generate_sample, 
+                    prompt_sample=args.prompt_sample, stop=task.stops[step]
+                ) for y in ys
+            ]
         elif args.method_generate == 'propose':
             new_ys = [get_proposals(task, x, y) for y in ys]
         new_ys = list(itertools.chain(*new_ys))
         ids = list(range(len(new_ys)))
-        # evaluation
+
+        # Evaluation
         if args.method_evaluate == 'vote':
             values = get_votes(task, x, new_ys, args.n_evaluate_sample)
         elif args.method_evaluate == 'value':
             values = get_values(task, x, new_ys, args.n_evaluate_sample)
 
-        # selection
+        # Selection
         if args.method_select == 'sample':
             ps = np.array(values) / sum(values)
             select_ids = np.random.choice(ids, size=args.n_select_sample, p=ps).tolist()
@@ -75,17 +101,50 @@ def solve(args, task, idx, to_print=True):
             select_ids = sorted(ids, key=lambda x: values[x], reverse=True)[:args.n_select_sample]
         select_new_ys = [new_ys[select_id] for select_id in select_ids]
 
-        # log
-        if to_print: 
+        # Log
+        if to_print:
             sorted_new_ys, sorted_values = zip(*sorted(zip(new_ys, values), key=lambda x: x[1], reverse=True))
             print(f'-- new_ys --: {sorted_new_ys}\n-- sol values --: {sorted_values}\n-- choices --: {select_new_ys}\n')
-        
-        infos.append({'step': step, 'x': x, 'ys': ys, 'new_ys': new_ys, 'values': values, 'select_new_ys': select_new_ys})
+
+        # Reflection Handling
+        if args.enable_reflection:
+            for select_id in select_ids:
+                selected_y = new_ys[select_id]
+                path = task.get_path(selected_y)  # Implement get_path to retrieve the path leading to selected_y
+                if task.is_goal(selected_y):
+                    reflection = get_reflection(task, path)
+                    Reflection_memory.update(reflection)
+                else:
+                    value = values[select_id]
+                    if value < args.threshold:
+                        reflection = get_reflection(task, path)
+                        Reflection_memory.update(reflection)
+            # Optionally include reflection memory in infos
+            infos.append({
+                'step': step,
+                'x': x,
+                'ys': ys,
+                'new_ys': new_ys,
+                'values': values,
+                'select_new_ys': select_new_ys,
+                'Reflection_memory': list(Reflection_memory)
+            })
+        else:
+            infos.append({
+                'step': step,
+                'x': x,
+                'ys': ys,
+                'new_ys': new_ys,
+                'values': values,
+                'select_new_ys': select_new_ys
+            })
+
         ys = select_new_ys
-    
-    if to_print: 
+
+    if to_print:
         print(ys)
     return ys, {'steps': infos}
+
 
 def naive_solve(args, task, idx, to_print=True):
     global gpt

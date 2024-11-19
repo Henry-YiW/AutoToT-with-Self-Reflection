@@ -3,7 +3,14 @@ import os
 import sympy
 import pandas as pd
 from tot.tasks.base import Task, DATA_PATH
-from tot.prompts.game24 import * 
+from tot.prompts.game24 import (
+    standard_prompt,
+    cot_prompt,
+    propose_prompt,
+    value_prompt,
+    value_last_step_prompt,
+    reflection_instruction  # Import reflection_instruction
+)
 
 
 def get_current_numbers(y: str) -> str:
@@ -34,7 +41,8 @@ class Game24Task(Task):
         self.value_cache = {}
         self.steps = 4
         self.stops = ['\n'] * 4
-
+        self.reflection_cache = {}
+       
     def __len__(self) -> int:
         return len(self.data)
     
@@ -90,3 +98,82 @@ class Game24Task(Task):
         value_map = {'impossible': 0.001, 'likely': 1, 'sure': 20}  # TODO: ad hoc
         value = sum(value * value_names.count(name) for name, value in value_map.items())
         return value
+    
+    @staticmethod
+    def reflection_prompt_wrap(self, previous_attempt):
+        """
+        Constructs the reflection prompt using the previous attempt.
+        """
+        reflection_prompt = reflection_instruction.format(previous_attempt=previous_attempt)
+        return reflection_prompt
+    
+    #add path to get_path
+    def get_path(self, y):
+        """
+        Reconstructs the path leading to the candidate solution y, including value estimations.
+        """
+        steps_start = y.find('Steps:')
+        answer_start = y.find('Answer:')
+        if steps_start != -1 and answer_start != -1:
+            steps_text = y[steps_start + len('Steps:'):answer_start].strip()
+            steps_lines = steps_text.strip().split('\n')
+            steps_with_values = []
+            for line in steps_lines:
+                if '(left:' in line:
+                    step_part, left_part = line.split('(left:')
+                    step = step_part.strip()
+                    remaining = left_part.strip().rstrip(')')
+                else:
+                    step = line.strip()
+                    remaining = 'Unknown'
+                # Estimate the value after this step
+                try:
+                    # Extract the expression after '='
+                    expr = step.split('=')[1].strip()
+                    value = self.safe_eval(expr)
+                except:
+                    value = 'Unknown'
+                steps_with_values.append(f"{step} (Value: {value}) (Remaining: {remaining})")
+            attempt_result = 'Attempt **successfully** reached 24.' if self.is_goal(y) else 'Attempt **failed** to reach 24.'
+            previous_attempt = 'Steps:\n' + '\n'.join(f"{i+1}. **{step}**" for i, step in enumerate(steps_with_values)) + f"\n{attempt_result}"
+            return previous_attempt
+        else:
+            return ''
+    def is_goal(self, y):
+        """
+        Determines if y is a goal state by checking if the final answer evaluates to 24.
+        """
+        import re
+        match = re.search(r'Answer:\s*(.*)', y)
+        if match:
+            answer_expr = match.group(1).strip()
+            try:
+                result = self.safe_eval(answer_expr)
+                return abs(result - 24) < 1e-6
+            except:
+                return False
+        else:
+            return False
+    def safe_eval(self, expr):
+        """
+        Safely evaluates a mathematical expression.
+        """
+        import ast
+        import operator as op
+
+        # Supported operators
+        operators = {ast.Add: op.add, ast.Sub: op.sub, ast.Mult: op.mul, ast.Div: op.truediv}
+
+        def eval_(node):
+            if isinstance(node, ast.Num):  # <number>
+                return node.n
+            elif isinstance(node, ast.BinOp):  # <left> <operator> <right>
+                left = eval_(node.left)
+                right = eval_(node.right)
+                return operators[type(node.op)](left, right)
+            else:
+                raise TypeError(node)
+
+        node = ast.parse(expr, mode='eval').body
+        return eval_(node)
+
