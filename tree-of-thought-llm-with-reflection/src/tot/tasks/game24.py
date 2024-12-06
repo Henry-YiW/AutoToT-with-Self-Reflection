@@ -100,7 +100,7 @@ class Game24Task(Task):
         return value
     
     @staticmethod
-    def reflection_prompt_wrap(self, previous_attempt):
+    def reflection_prompt_wrap(previous_attempt):
         """
         Constructs the reflection prompt using the previous attempt.
         """
@@ -176,4 +176,19 @@ class Game24Task(Task):
 
         node = ast.parse(expr, mode='eval').body
         return eval_(node)
+
+    @staticmethod
+    def reflection_outputs_unwrap(reflection_outputs: list) -> str:
+        """
+        Processes and combines reflection outputs into a single string.
+        
+        Args:
+            reflection_outputs: List of reflection responses from the model
+            
+        Returns:
+            A processed string containing the combined reflections
+        """
+        # Combine all reflection outputs, assuming they're strings
+        combined_reflections = "\n".join(reflection_outputs)
+        return combined_reflections
 

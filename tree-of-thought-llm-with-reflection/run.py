@@ -62,6 +62,8 @@ def parse_args():
     args.add_argument('--n_evaluate_sample', type=int, default=1)
     args.add_argument('--n_select_sample', type=int, default=1)
     args.add_argument('--enable_reflection', action='store_true', help='Enable reflection in Tree of Thought')
+    args.add_argument('--threshold', type=float, default=0.5,
+                       help='Threshold value for BFS method')
     # Add any additional arguments you need
 
     args = args.parse_args()
