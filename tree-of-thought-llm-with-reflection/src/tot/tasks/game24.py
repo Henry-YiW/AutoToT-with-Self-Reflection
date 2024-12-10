@@ -100,11 +100,12 @@ class Game24Task(Task):
         return value
     
     @staticmethod
-    def reflection_prompt_wrap(previous_attempt):
+    def reflection_prompt_wrap(reasoning_path):
         """
         Constructs the reflection prompt using the previous attempt.
         """
-        reflection_prompt = reflection_instruction.format(previous_attempt=previous_attempt)
+        print("FUCK REASONING PATH", reasoning_path)
+        reflection_prompt = reflection_instruction.format(reasoning_path=reasoning_path)
         return reflection_prompt
     
     #add path to get_path

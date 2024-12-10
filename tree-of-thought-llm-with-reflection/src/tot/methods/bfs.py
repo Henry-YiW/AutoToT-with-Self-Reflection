@@ -48,13 +48,16 @@ def get_samples(task, x, y, n_generate_sample, prompt_sample, stop):
 
 #For the ToT with self-reflection.
 def get_reflection(task, path, n_reflection_sample=1, cache_reflection=True):
+    print("FUCK PATH", path)
     reflection_prompt = task.reflection_prompt_wrap(path)
-    
+    #print("FUCK REFLECTION PROMPT", reflection_prompt)
     if cache_reflection and reflection_prompt in task.reflection_cache:
         return task.reflection_cache[reflection_prompt]
     
     reflections = gpt(reflection_prompt, n=n_reflection_sample, stop=None)
+    print("FUCK REFLECTION", reflections)
     processed_reflections = task.reflection_outputs_unwrap(reflections)
+    print("FUCK PROCESSED REFLECTION", processed_reflections)
     
     if cache_reflection:
         task.reflection_cache[reflection_prompt] = processed_reflections
@@ -62,7 +65,7 @@ def get_reflection(task, path, n_reflection_sample=1, cache_reflection=True):
     return processed_reflections
 
 
-def solve(args, task, idx, to_print=True):
+def solve(args, task, idx, global_reflection_memory=None, to_print=True):
     global gpt
     gpt = partial(gpt, model=args.backend, temperature=args.temperature)
     print(gpt)
@@ -70,8 +73,9 @@ def solve(args, task, idx, to_print=True):
     x = task.get_input(idx)  # Input
     ys = ['']  # Initial candidates
     infos = []
-    if args.enable_reflection:
-        Reflection_memory = set()  # Initialize reflection memory
+    
+    # Use global reflection memory if provided, otherwise create new list
+    Reflection_memory = global_reflection_memory.copy() if global_reflection_memory is not None else []
     
     for step in range(task.steps):
         # Generation
@@ -110,15 +114,27 @@ def solve(args, task, idx, to_print=True):
         if args.enable_reflection:
             for select_id in select_ids:
                 selected_y = new_ys[select_id]
-                path = task.get_path(selected_y)  # Implement get_path to retrieve the path leading to selected_y
+                path = task.get_path(selected_y)
                 if task.is_goal(selected_y):
                     reflection = get_reflection(task, path)
-                    Reflection_memory.update(reflection)
+                    if isinstance(reflection, str):
+                        if reflection not in Reflection_memory:
+                            Reflection_memory.append(reflection)
+                    else:
+                        for r in reflection:
+                            if r not in Reflection_memory:
+                                Reflection_memory.append(r)
                 else:
                     value = values[select_id]
                     if value < args.threshold:
                         reflection = get_reflection(task, path)
-                        Reflection_memory.update(reflection)
+                        if isinstance(reflection, str):
+                            if reflection not in Reflection_memory:
+                                Reflection_memory.append(reflection)
+                        else:
+                            for r in reflection:
+                                if r not in Reflection_memory:
+                                    Reflection_memory.append(r)
             # Optionally include reflection memory in infos
             infos.append({
                 'step': step,

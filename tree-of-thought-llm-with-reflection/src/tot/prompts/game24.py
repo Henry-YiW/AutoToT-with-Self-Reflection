@@ -298,6 +298,6 @@ Attempt **successfully** reached 24.
 5. Pattern: Recognize key number pairs (e.g., 3 and 8) that multiply to 24.
 
 **Previous trial:**
-{previous_attempt}
+{reasoning_path}
 
-**Reflection:**"""
+**The newly generated reflection based on the reasoning path is as follows:**"""
