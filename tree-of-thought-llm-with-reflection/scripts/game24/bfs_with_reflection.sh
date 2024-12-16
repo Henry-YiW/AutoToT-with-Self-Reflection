@@ -1,8 +1,8 @@
 python ../../run.py \
     --backend gpt-3.5-turbo \
     --task game24 \
-    --task_start_index 800 \
-    --task_end_index 805\
+    --task_start_index 900 \
+    --task_end_index 1000\
     --method_generate propose \
     --method_evaluate value \
     --method_select greedy \

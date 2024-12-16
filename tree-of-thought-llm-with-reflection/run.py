@@ -13,13 +13,11 @@ def run(args):
     # File paths
     if args.naive_run:
         log_file = f'./logs/{args.task}/{args.backend}_{args.temperature}_naive_{args.prompt_sample}_sample_{args.n_generate_sample}_start{args.task_start_index}_end{args.task_end_index}.json'
-        # Remove the start/end indices from reflection file name
-        reflection_file = f'./logs/{args.task}/{args.backend}_{args.temperature}_naive_reflection.json'
+        reflection_file = f'./logs/{args.task}/{args.backend}_{args.temperature}_naive_reflection_start{args.task_start_index}_end{args.task_end_index}.json'
     else:
         reflection_suffix = "_reflection" if args.enable_reflection else ""
         log_file = f'./logs/{args.task}/{args.backend}_{args.temperature}_{args.method_generate}{args.n_generate_sample}_{args.method_evaluate}{args.n_evaluate_sample}_{args.method_select}{args.n_select_sample}{reflection_suffix}_start{args.task_start_index}_end{args.task_end_index}.json'
-        # Remove the start/end indices from reflection file name
-        reflection_file = f'./logs/{args.task}/{args.backend}_{args.temperature}_reflection_{args.method_generate}{args.n_generate_sample}.json'
+        reflection_file = f'./logs/{args.task}/{args.backend}_{args.temperature}_reflection_{args.method_generate}{args.n_generate_sample}_start{args.task_start_index}_end{args.task_end_index}.json'
 
     os.makedirs(os.path.dirname(log_file), exist_ok=True)
     
@@ -34,7 +32,8 @@ def run(args):
                     global_reflection_memory = existing_data['global_reflection_memory']
             except json.JSONDecodeError:
                 pass
-
+    
+    print("FUCK GLOBAL REFLECTION MEMORY", global_reflection_memory)
     for i in range(args.task_start_index, args.task_end_index):
         # solve
         if args.naive_run:
@@ -43,6 +42,7 @@ def run(args):
             ys, info = solve(args, task, i, global_reflection_memory)
 
         # Update global reflection memory from the latest solve
+        
         if args.enable_reflection and "steps" in info:
             for step_info in info["steps"]:
                 if "Reflection_memory" in step_info:

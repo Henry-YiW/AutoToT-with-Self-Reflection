@@ -109,37 +109,25 @@ class Game24Task(Task):
         return reflection_prompt
     
     #add path to get_path
-    def get_path(self, y):
+    def get_path(self, y, father_dict=None):
         """
-        Reconstructs the path leading to the candidate solution y, including value estimations.
+        Get the solution path with formatting and success/failure indication.
+        
+        Args:
+            y: The solution string containing all steps
+            father_dict: Not used since solution path is already in y
+            
+        Returns:
+            Formatted string containing steps and result indication
         """
-        steps_start = y.find('Steps:')
-        answer_start = y.find('Answer:')
-        if steps_start != -1 and answer_start != -1:
-            steps_text = y[steps_start + len('Steps:'):answer_start].strip()
-            steps_lines = steps_text.strip().split('\n')
-            steps_with_values = []
-            for line in steps_lines:
-                if '(left:' in line:
-                    step_part, left_part = line.split('(left:')
-                    step = step_part.strip()
-                    remaining = left_part.strip().rstrip(')')
-                else:
-                    step = line.strip()
-                    remaining = 'Unknown'
-                # Estimate the value after this step
-                try:
-                    # Extract the expression after '='
-                    expr = step.split('=')[1].strip()
-                    value = self.safe_eval(expr)
-                except:
-                    value = 'Unknown'
-                steps_with_values.append(f"{step} (Value: {value}) (Remaining: {remaining})")
-            attempt_result = 'Attempt **successfully** reached 24.' if self.is_goal(y) else 'Attempt **failed** to reach 24.'
-            previous_attempt = 'Steps:\n' + '\n'.join(f"{i+1}. **{step}**" for i, step in enumerate(steps_with_values)) + f"\n{attempt_result}"
-            return previous_attempt
-        else:
-            return ''
+        # Split into individual steps
+        steps = [s.strip() for s in y.strip().split('\n') if s.strip()]
+        
+        # Determine success/failure
+        attempt_result = 'Attempt **successfully** reached 24.' if self.is_goal(y) else 'Attempt **failed** to reach 24.'
+        
+        # Format the output
+        return 'Steps:\n' + '\n'.join(f"{i+1}. {step}" for i, step in enumerate(steps)) + f"\n\n{attempt_result}"
     def is_goal(self, y):
         """
         Determines if y is a goal state by checking if the final answer evaluates to 24.

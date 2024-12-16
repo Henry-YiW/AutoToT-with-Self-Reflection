@@ -114,6 +114,8 @@ def solve(args, task, idx, global_reflection_memory=None, to_print=True):
         if args.enable_reflection:
             for select_id in select_ids:
                 selected_y = new_ys[select_id]
+                print("To see whether the selected y is a path")
+                print("FUCK SELECTED Y", selected_y)
                 path = task.get_path(selected_y)
                 if task.is_goal(selected_y):
                     reflection = get_reflection(task, path)
