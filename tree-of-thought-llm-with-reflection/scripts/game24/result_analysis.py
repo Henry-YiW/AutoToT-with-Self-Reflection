@@ -3,8 +3,9 @@ import json
 # Load data from the file
 #file_name = "/scratch/bdes/haorany7/self-reflection-ToT/AutoToT-with-Self-Reflection/tree-of-thought-llm-with-reflection/logs/game24/gpt-3.5_0.7_propose5_value3_greedy5_start0_end5.json"
 #file_name = "gpt-3.5-turbo_0.7_propose5_value3_greedy5_reflection_start805_end810.json"
-file_name ="/scratch/bdes/haorany7/self-reflection-ToT/AutoToT-with-Self-Reflection/tree-of-thought-llm-with-reflection/scripts/game24/logs/game24/gpt-3.5-turbo_0.7_propose5_value3_greedy5_reflection_start900_end1000.json"
+#file_name ="/scratch/bdes/haorany7/self-reflection-ToT/AutoToT-with-Self-Reflection/tree-of-thought-llm-with-reflection/scripts/game24/logs/game24/gpt-3.5-turbo_0.7_propose5_value3_greedy5_reflection_start900_end1000.json"
 #file_name = "/scratch/bdes/haorany7/self-reflection-ToT/AutoToT-with-Self-Reflection/tree-of-thought-llm-with-reflection/scripts/game24/logs/game24/gpt-3.5-turbo_0.7_propose1_value3_greedy5_start900_end1000.json"
+file_name = "/scratch/bdes/haorany7/self-reflection-ToT/AutoToT-with-Self-Reflection/tree-of-thought-llm-with-reflection/scripts/game24/logs/game24/gpt-3.5-turbo_0.7_propose1_value3_greedy5_start900_end1000.json"
 try:
     with open(file_name, "r") as file:
         data = json.load(file)
