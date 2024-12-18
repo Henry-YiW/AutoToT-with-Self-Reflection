@@ -63,7 +63,7 @@ def get_reflection(task, path, n_reflection_sample=1, cache_reflection=True):
     
     return processed_reflections
 
-def crossword_execute(env, action_info, other_params):
+def crossword_execute(env, action_info, actions, other_params):
     action = action_info['action']
     if action_info['env_info'] is not None:
         board, status, steps = action_info['env_info']
@@ -74,8 +74,7 @@ def crossword_execute(env, action_info, other_params):
         
         cnt_per_state += 1
         if cnt_per_state > other_params['max_per_state']: return 'break'
-        count = env.prompt_status()      
-        actions = action_info['parent_actions'].copy() 
+        count = env.prompt_status()
         actions.append(action)  
 
         print(len(other_params['infos']))
@@ -100,7 +99,8 @@ def crossword_generate(env, action_info, other_params):
     if len(candidates_to_scores) == 0: return []
     sorted_candidates = sorted(candidates_to_scores, key=candidates_to_scores.get, reverse=False)
     sorted_scores = [candidates_to_scores[candidate] for candidate in sorted_candidates]
-    return { "result_list": sorted_candidates, "priority_list": sorted_scores }
+    print({ "result_list": [{"action": sorted_candidate, "env_info": (env.board.copy(), env.status.copy(), env.steps)} for sorted_candidate in sorted_candidates], "priority_list": sorted_scores })
+    return { "result_list": [{"action": sorted_candidate, "env_info": (env.board.copy(), env.status.copy(), env.steps)} for sorted_candidate in sorted_candidates], "priority_list": sorted_scores }
 
 
 def check_field_values_equal(elements, field):
@@ -123,11 +123,18 @@ def check_field_values_equal(elements, field):
 def game24_queue_stack_valuate(env, queue_stack, other_params):
     task = env['task']
     x = task.get_input(other_params['idx'])  # Input
-    new_ys = queue_stack
+    new_ys = [item['action'] for item in queue_stack]
     if (not check_field_values_equal(queue_stack, 'level')):
+        return
+    if 'parent_actions' not in env:
+        env['parent_actions'] = []
+    env['parent_actions'].append(new_ys.copy())
+    if new_ys[0] is None:
         return
     ids = list(range(len(new_ys)))
     infos = other_params['infos']
+    level = queue_stack[0]['level']
+    old_ys = env['parent_actions'].pop(0)
     # Evaluation
     if other_params['method_evaluate'] == 'vote':
         values = get_votes(task, x, new_ys, other_params['n_evaluate_sample'])
@@ -176,9 +183,9 @@ def game24_queue_stack_valuate(env, queue_stack, other_params):
                                 env['Reflection_memory'].append(r)
         # Optionally include reflection memory in infos
         infos.append({
-            'step': step,
+            'step': level,
             'x': x,
-            'ys': ys,
+            'ys': old_ys,
             'new_ys': new_ys,
             'values': values,
             'select_new_ys': select_new_ys,
@@ -186,9 +193,9 @@ def game24_queue_stack_valuate(env, queue_stack, other_params):
         })
     else:
         infos.append({
-            'step': step,
+            'step': level,
             'x': x,
-            'ys': ys,
+            'ys': old_ys,
             'new_ys': new_ys,
             'values': values,
             'select_new_ys': select_new_ys
@@ -198,6 +205,12 @@ def game24_queue_stack_valuate(env, queue_stack, other_params):
 
     if other_params['to_print']:
         print(queue_stack)
+
+def game24_execute(env, action_info, actions, other_params):
+    level = action_info['level']
+    if level >= other_params['steps']:
+        return 'non-generate'
+    return 'generate'
 
 def game24_generate(env, action_info, other_params):
     task = env['task']
@@ -213,7 +226,32 @@ def game24_generate(env, action_info, other_params):
             )
     elif other_params['method_generate'] == 'propose':
         new_ys = get_proposals(task, x, y)
-    return new_ys
+    return [{"action": new_y, "env_info": None} for new_y in new_ys]
+
+def sliding_window_sanity_check(sliding_window_size, length_of_queue_stack):
+    processed_sliding_window_size = [0, 0]
+    if sliding_window_size[0] < 0:
+        if sliding_window_size[0] < -length_of_queue_stack:
+            processed_sliding_window_size[0] = -length_of_queue_stack
+        else:
+            processed_sliding_window_size[0] = sliding_window_size[0]
+    else:
+        if sliding_window_size[0] >= length_of_queue_stack:
+            processed_sliding_window_size[0] = length_of_queue_stack - 1
+        else:
+            processed_sliding_window_size[0] = sliding_window_size[0]
+
+    if sliding_window_size[1] < 0:
+        if sliding_window_size[1] < -length_of_queue_stack:
+            processed_sliding_window_size[1] = -length_of_queue_stack
+        else:
+            processed_sliding_window_size[1] = sliding_window_size[1]
+    else:
+        if sliding_window_size[1] >= length_of_queue_stack:
+            processed_sliding_window_size[1] = length_of_queue_stack - 1
+        else:
+            processed_sliding_window_size[1] = sliding_window_size[1]
+    return processed_sliding_window_size
 
 def auto_search(env, other_params, execute_func, generate_func, epsilon = 0.3, decay_rate = 0.9, sliding_window_size = None, heapify_queue_stack = False, queue_stack_valuate_func = None):
     queue_stack = [{'action': None, 'parent_actions': [], 'env_info': None, 'level': 0}]
@@ -226,41 +264,42 @@ def auto_search(env, other_params, execute_func, generate_func, epsilon = 0.3, d
             if heapify_queue_stack:
                 queue_stack_copy = queue_stack.copy()
                 heapq.heapify(queue_stack_copy)
-                action_info = queue_stack_copy.pop(random.randint(sliding_window_indexes[0], sliding_window_indexes[1]))
+                processed_sliding_window_indexes = sliding_window_sanity_check(sliding_window_indexes, len(queue_stack_copy))
+                action_info = queue_stack_copy.pop(random.randint(processed_sliding_window_indexes[0], processed_sliding_window_indexes[1]))
                 queue_stack.pop(queue_stack.index(action_info))
             else:
-                action_info = queue_stack.pop(random.randint(sliding_window_indexes[0], sliding_window_indexes[1]))
+                processed_sliding_window_indexes = sliding_window_sanity_check(sliding_window_indexes, len(queue_stack))
+                action_info = queue_stack.pop(random.randint(processed_sliding_window_indexes[0], processed_sliding_window_indexes[1]))
         else:
             action_info = queue_stack.pop()
-        actions = action_info['parent_actions']
+        actions = action_info['parent_actions'].copy()
         level = action_info['level']
 
         to_generate_thoughts = 'generate'
 
         if action_info['action'] is not None:
-            to_generate_thoughts = execute_func(env, action_info, other_params)
+            to_generate_thoughts = execute_func(env, action_info, actions, other_params)
 
         if to_generate_thoughts == 'generate':
             new_thoughts = generate_func(env, action_info, other_params)
-            support_heapified = False
             if (type(new_thoughts) == dict) and 'priority_list' in new_thoughts and new_thoughts['priority_list'] is not None:
-                support_heapified = True
                 if len(new_thoughts['result_list']) == 0: continue
-                for priority, action in zip(new_thoughts['priority_list'], new_thoughts['result_list']):
+                for priority, action_info in zip(new_thoughts['priority_list'], new_thoughts['result_list']):
                     queue_stack.append((
                         priority, {
-                            'action': action, 
+                            'action': action_info['action'], 
                             'parent_actions': actions.copy(), 
-                            'env_info': (env.board.copy(), env.status.copy(), env.steps),
+                            'env_info': action_info['env_info'],
                             'level': level + 1
                         }
                     ))
             else:
                 if len(new_thoughts) == 0: continue
-                for action in new_thoughts:
+                for action_info in new_thoughts:
                     queue_stack.append({
-                        'action': action, 'parent_actions': actions.copy(), 
-                        'env_info': (env.board.copy(), env.status.copy(), env.steps),
+                        'action': action_info['action'],
+                        'parent_actions': actions.copy(), 
+                        'env_info': action_info['env_info'],
                         'level': level + 1
                         })
         elif to_generate_thoughts == 'non-generate':
