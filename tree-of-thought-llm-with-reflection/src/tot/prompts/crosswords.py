@@ -324,3 +324,43 @@ impossible
 
 {input}
 '''
+
+reflection_instruction = """You are an advanced reasoning agent that improves based on self-reflection. You will be given a previous reasoning trial where you attempted to solve a mini crossword puzzle. The attempt may or may not have successfully completed the puzzle.
+
+In your reflection, please:
+1. Analyze the word choices and their impact on intersecting words
+2. Identify any constraints or patterns that were overlooked
+3. Suggest specific strategies for selecting better words
+4. Consider letter frequencies and common word patterns
+5. Look for opportunities to use knowledge of common crossword answers
+
+Previous trial:
+{reasoning_path}
+
+Please provide a reflection focusing on improving the solution strategy."""
+
+local_reflection_instruction = """Given the current state of the crossword puzzle:
+
+{reasoning_path}
+
+Please analyze this attempt and provide immediate tactical suggestions focusing on:
+
+1. Word Analysis:
+   - Which words fit well with intersecting constraints?
+   - What letter patterns are promising?
+   - Are there common crossword answers we could use?
+
+2. Constraint Analysis:
+   - What intersecting letters create difficult constraints?
+   - Which positions are most constrained?
+   - What letter combinations are problematic?
+
+3. Next Step Strategy:
+   - Which position should we fill next?
+   - What word choices would be most strategic?
+   - How can we maximize our chances of success?
+
+Format your reflection as:
+Word Analysis: [Specific insights about word choices]
+Constraint Analysis: [Key crossword constraints]
+Next Step: [Concrete suggestion for the next word]"""

@@ -97,3 +97,32 @@ class TextTask(Task):
         else:
             print(f'-----------------compare no match: {[compare_output]}')
             return -1
+
+    def local_reflection_prompt_wrap(self, path):
+        """
+        Generate a prompt for local reflection focused on immediate text improvements.
+        """
+        prompt = f"""Analyzing this current text solution attempt:
+{path}
+
+Please provide specific, immediate suggestions for improvement.
+Focus on:
+1. Grammar and word choice issues in the current attempt
+2. Logical flow and coherence of ideas
+3. Specific ways to enhance clarity or impact
+
+Provide concise, actionable feedback for the next step."""
+
+        return prompt
+
+    def local_reflection_outputs_unwrap(self, reflections):
+        """Process the local reflection outputs for text tasks."""
+        processed_reflections = []
+        for reflection in reflections:
+            cleaned = reflection.strip()
+            if cleaned:
+                # Split into separate points if multiple suggestions are provided
+                points = [p.strip() for p in cleaned.split('\n') if p.strip()]
+                processed_reflections.extend(points)
+        
+        return processed_reflections

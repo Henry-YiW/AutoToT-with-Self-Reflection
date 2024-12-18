@@ -9,7 +9,8 @@ from tot.prompts.game24 import (
     propose_prompt,
     value_prompt,
     value_last_step_prompt,
-    reflection_instruction  # Import reflection_instruction
+    reflection_instruction,  # Import reflection_instruction
+    local_reflection_instruction
 )
 
 
@@ -108,6 +109,33 @@ class Game24Task(Task):
         reflection_prompt = reflection_instruction.format(reasoning_path=reasoning_path)
         return reflection_prompt
     
+    @staticmethod
+    def add_reflections_to_prompt(original_prompt, local_reflections=None, global_reflections=None):
+        """
+        Add both local and global reflections to the prompt.
+        Only use the most recent 20 global reflections to avoid prompt being too long.
+        
+        Args:
+            original_prompt: The base prompt
+            local_reflections: List of local reflections for current run
+            global_reflections: List of global reflections across runs
+        """
+        reflection_text = ""
+        
+        if local_reflections:
+            reflection_text += "\nLocal insights from current attempts:\n"
+            reflection_text += "\n".join(f"- {r}" for r in local_reflections)
+        
+        if global_reflections:
+            reflection_text += "\nGlobal insights from previous experience:\n"
+            # Take only the last 20 global reflections
+            recent_global_reflections = global_reflections[-20:]
+            reflection_text += "\n".join(f"- {r}" for r in recent_global_reflections)
+        
+        if reflection_text:
+            reflection_text += "\nPlease consider these insights when generating your solution.\n"
+            
+        return original_prompt + reflection_text
     #add path to get_path
     def get_path(self, y, father_dict=None):
         """
@@ -180,4 +208,31 @@ class Game24Task(Task):
         # Combine all reflection outputs, assuming they're strings
         combined_reflections = "\n".join(reflection_outputs)
         return combined_reflections
+
+    @staticmethod
+    def local_reflection_prompt_wrap(path):
+        """
+        Generate a prompt for local reflection focused on immediate improvements.
+        """
+        return local_reflection_instruction.format(reasoning_path=path)
+
+    @staticmethod
+    def local_reflection_outputs_unwrap(reflections):
+        """
+        Process the local reflection outputs into structured tactical advice.
+        """
+        processed_reflections = []
+        for reflection in reflections:
+            # Extract sections using regex
+            value_analysis = re.search(r'Value Analysis:\s*([^\n]*)', reflection)
+            number_properties = re.search(r'Number Properties:\s*([^\n]*)', reflection)
+            next_step = re.search(r'Next Step:\s*([^\n]*)', reflection)
+            
+            if next_step:  # Only include if we have at least the next step suggestion
+                reflection_text = f"Next step: {next_step.group(1)}"
+                if value_analysis:
+                    reflection_text += f" (based on: {value_analysis.group(1)})"
+                processed_reflections.append(reflection_text)
+        
+        return processed_reflections
 

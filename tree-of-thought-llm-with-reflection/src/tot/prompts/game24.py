@@ -301,3 +301,31 @@ Attempt **successfully** reached 24.
 {reasoning_path}
 
 **The newly generated reflection based on the reasoning path is as follows:**"""
+
+
+
+local_reflection_instruction = """You are an advanced reasoning agent analyzing a Game24 puzzle attempt. Given the current state and remaining numbers, provide tactical insights for the next step.
+
+Previous attempt:
+{reasoning_path}
+
+Please analyze this attempt and provide a reflection focusing on:
+1. Value Analysis:
+   - Which operations led to values too far from 24?
+   - Which intermediate values were promising?
+   - What target values should we aim for next?
+
+2. Number Properties:
+   - Are there any factors of 24 among the remaining numbers?
+   - What useful pairs could be formed (e.g., numbers that multiply/add to 12, 8, 6)?
+   - Are the remaining numbers too large/small for certain operations?
+
+3. Next Step Strategy:
+   - What specific operation should be tried next?
+   - Which numbers should be prioritized?
+   - What intermediate targets should we aim for?
+
+Format your reflection as:
+Value Analysis: [Specific insights about values]
+Number Properties: [Key mathematical relationships]
+Next Step: [Concrete suggestion for the next operation]"""

@@ -1,0 +1,212 @@
+Failed Crossword Cases:
+Total failed cases: 19
+
+Episode 0:
+Final word configuration:
+  h2. motor
+  h1. tasks
+  h3. grand
+  v3. stare
+  v2. aorni
+  v5. srder
+  v4. konic
+  h4. anrie
+
+Episode 1:
+Final word configuration:
+  h4. seder
+  v3. evade
+  v1. arise
+  h2. rival
+  v4. raser
+  h5. etere
+  v5. elure
+  h1. agere
+
+Episode 2:
+Final word configuration:
+  v2. error
+  h3. friar
+  h1. bebop
+  v3. being
+  h5. argal
+  v1. buffa
+  v4. opara
+
+Episode 4:
+Final word configuration:
+  v3. elope
+  h2. helix
+  h3. erose
+  v5. exert
+  v2. heron
+  v1. chess
+  h4. soper
+  v4. rises
+
+Episode 5:
+Final word configuration:
+  v2. hello
+  h1. chose
+  v5. eater
+  v4. sieve
+  v1. crush
+  h5. hoper
+  h2. regia
+  h4. sleve
+  h3. ulmet
+
+Episode 6:
+Final word configuration:
+  h5. karst
+  v1. croak
+  h1. clasp
+  v2. larva
+  h2. ratch
+  v4. scats
+  v3. atbar
+  h3. orbay
+  h4. avate
+
+Episode 7:
+Final word configuration:
+  h4. sieve
+  v3. unsew
+  h3. essay
+  v4. leave
+  h1. adult
+  h2. tuner
+  v5. tryer
+  v1. atese
+  v2. dusie
+
+Episode 8:
+Final word configuration:
+  h1. salsa
+  h5. order
+  v4. swale
+  v5. amber
+  v1. sanzo
+  v3. lamed
+  v2. alnor
+
+Episode 9:
+Final word configuration:
+  h5. enter
+  h1. eruct
+  v1. evade
+  v5. tenor
+  v4. curse
+  h4. dipso
+  h3. adorn
+  v2. redin
+
+Episode 10:
+Final word configuration:
+  h3. inner
+  h2. print
+  h5. merge
+  v2. urnae
+  h1. puddy
+  v5. ytrie
+  v4. dnegg
+  v3. dingr
+  h4. paggi
+
+Episode 11:
+Final word configuration:
+  h4. totem
+  v5. enemy
+  h1. horde
+  v1. heats
+  h5. slury
+  h3. apace
+  v3. reatu
+  v4. dacer
+  v2. orpol
+
+Episode 12:
+Final word configuration:
+  h1. grove
+  v1. glare
+  h4. raise
+  h3. agama
+  v2. regal
+  h2. lerts
+  v3. orais
+
+Episode 13:
+Final word configuration:
+  h1. grove
+  v1. gripe
+  h4. prime
+  h5. eyrie
+  v3. opair
+  v4. vacmi
+
+Episode 14:
+Final word configuration:
+  h4. rinse
+  h3. lower
+  h5. nypas
+  v2. unoiy
+  h1. dutch
+  v5. hares
+  v3. tawnp
+  v4. chesa
+
+Episode 15:
+Final word configuration:
+  v4. armed
+  h3. shame
+  h4. navel
+  h2. intro
+  v2. inhab
+  h1. tisar
+  v5. roels
+  v1. tisne
+  v3. stave
+
+Episode 16:
+Final word configuration:
+  h2. ovine
+  h4. inner
+  v2. event
+  h5. state
+  v4. inset
+  h1. gedim
+
+Episode 17:
+Final word configuration:
+  h5. spare
+  v2. usurp
+  v3. mania
+  h3. munch
+  h2. usage
+  h1. lumen
+  v5. nehle
+  v1. lumps
+
+Episode 18:
+Final word configuration:
+  h5. unary
+  v5. teary
+  h4. saner
+  v4. idler
+  v2. irian
+  h1. pipit
+  v3. pinna
+  h3. kinla
+
+Episode 19:
+Final word configuration:
+  v2. ricer
+  h1. print
+  v5. treed
+  h4. sense
+  v1. pulse
+  v3. irons
+  h2. uirer
+  h5. ersed
+  v4. nerse
+

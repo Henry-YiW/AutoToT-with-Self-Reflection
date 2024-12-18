@@ -255,3 +255,82 @@ class MiniCrosswordsTask(Task):
             if res in count: count[res] += 1
         print(count)
         return count
+
+    @staticmethod
+    def reflection_prompt_wrap(reasoning_path):
+        """
+        Constructs the reflection prompt using the previous attempt.
+        """
+        print("CROSSWORD REASONING PATH", reasoning_path)
+        reflection_prompt = reflection_instruction.format(reasoning_path=reasoning_path)
+        return reflection_prompt
+    
+    @staticmethod
+    def add_reflections_to_prompt(original_prompt, local_reflections=None, global_reflections=None):
+        """
+        Add both local and global reflections to the prompt.
+        Only use the most recent 20 global reflections to avoid prompt being too long.
+        """
+        reflection_text = ""
+        
+        if local_reflections:
+            reflection_text += "\nLocal insights from current crossword attempts:\n"
+            reflection_text += "\n".join(f"- {r}" for r in local_reflections)
+        
+        if global_reflections:
+            reflection_text += "\nGlobal insights from previous crosswords:\n"
+            recent_global_reflections = global_reflections[-20:]
+            reflection_text += "\n".join(f"- {r}" for r in recent_global_reflections)
+        
+        if reflection_text:
+            reflection_text += "\nPlease consider these insights when filling the crossword.\n"
+            
+        return original_prompt + reflection_text
+
+    def get_path(self, y, father_dict=None):
+        """
+        Get the solution path with formatting and success/failure indication.
+        """
+        # Split into individual steps
+        steps = [s.strip() for s in y.strip().split('\n') if s.strip()]
+        
+        # Determine success/failure
+        attempt_result = 'Attempt **successfully** completed.' if self.is_goal(y) else 'Attempt **incomplete**.'
+        
+        # Format the output
+        return 'Steps:\n' + '\n'.join(f"{i+1}. {step}" for i, step in enumerate(steps)) + f"\n\n{attempt_result}"
+
+    def is_goal(self, y):
+        """
+        Determines if y is a complete solution by checking if all words are filled.
+        """
+        output = y.split('Output:\n')[-1]
+        filled_words = [line for line in output.strip().split('\n')[-5:] if line.strip()]
+        return len(filled_words) == 5 and all(len(word.split()) >= 5 for word in filled_words)
+
+    @staticmethod
+    def local_reflection_prompt_wrap(path):
+        """
+        Generate a prompt for local reflection focused on immediate improvements.
+        """
+        return local_reflection_instruction.format(reasoning_path=path)
+
+    @staticmethod
+    def local_reflection_outputs_unwrap(reflections):
+        """
+        Process the local reflection outputs into structured tactical advice.
+        """
+        processed_reflections = []
+        for reflection in reflections:
+            # Extract sections using regex
+            word_analysis = re.search(r'Word Analysis:\s*([^\n]*)', reflection)
+            constraint_analysis = re.search(r'Constraint Analysis:\s*([^\n]*)', reflection)
+            next_step = re.search(r'Next Step:\s*([^\n]*)', reflection)
+            
+            if next_step:  # Only include if we have at least the next step suggestion
+                reflection_text = f"Next step: {next_step.group(1)}"
+                if word_analysis:
+                    reflection_text += f" (based on: {word_analysis.group(1)})"
+                processed_reflections.append(reflection_text)
+        
+        return processed_reflections
