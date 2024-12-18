@@ -55,6 +55,24 @@ class Game24Task(Task):
             return {'r': 0}
             
     @staticmethod
+    def task_description_prompt_wrap(cot=False) -> str:
+        return task_description + task_few_shot_example if not cot else task_description + task_few_shot_cot_example
+    
+    @staticmethod
+    def thought_generation_method_selection_prompt_wrap(including_task_description=False, cot=False) -> str:
+        if including_task_description:
+            return Game24Task.task_description_prompt_wrap(cot) + '\n' + auto_thought_generation_selection_prompt_with_cot
+        else:
+            return auto_thought_generation_selection_prompt_with_cot
+    
+    @staticmethod
+    def thought_evaluation_method_selection_prompt_wrap(including_task_description=False, cot=False) -> str:
+        if including_task_description:
+            return Game24Task.task_description_prompt_wrap(cot) + '\n' + auto_state_evaluation_method_selection_prompt_with_cot
+        else:
+            return auto_state_evaluation_method_selection_prompt_with_cot
+    
+    @staticmethod
     def standard_prompt_wrap(x: str, y:str='') -> str:
         return standard_prompt.format(input=x) + y
 

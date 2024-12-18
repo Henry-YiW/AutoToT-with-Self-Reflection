@@ -46,6 +46,28 @@ def get_samples(task, x, y, n_generate_sample, prompt_sample, stop):
     samples = gpt(prompt, n=n_generate_sample, stop=stop)
     return [y + _ for _ in samples]
 
+def get_thought_generation_method(task, n_generate_sample, stop):
+    prompt = task.thought_generation_method_selection_prompt_wrap(including_task_description=True, cot=False)
+    methods = gpt(prompt, n=n_generate_sample, stop=stop)
+    votes = { "proposition": 0, "sampling": 0 }
+    for method in methods:
+        if 'thought_generation_method' in method:
+            votes[method['thought_generation_method']] += 1
+        else:
+            raise ValueError(f'thought_generation_method not found in {method}')
+    return max(votes, key=votes.get)
+
+def get_state_evaluation_method(task, n_generate_sample, stop):
+    prompt = task.state_evaluation_method_selection_prompt_wrap(including_task_description=True, cot=False)
+    methods = gpt(prompt, n=n_generate_sample, stop=stop)
+    votes = { "value": 0, "vote": 0 }
+    for method in methods:
+        if 'state_evaluation_method' in method:
+            votes[method['state_evaluation_method']] += 1
+        else:
+            raise ValueError(f'state_evaluation_method not found in {method}')
+    return max(votes, key=votes.get)
+
 def solve(args, task, idx, to_print=True):
     global gpt
     gpt = partial(gpt, model=args.backend, temperature=args.temperature)
@@ -54,6 +76,8 @@ def solve(args, task, idx, to_print=True):
     ys = ['']  # current output candidates
     infos = []
     for step in range(task.steps):
+        thought_generation_method = get_thought_generation_method(task, args.n_generate_sample, task.stops[step])
+        state_evaluation_method = get_state_evaluation_method(task, args.n_generate_sample, task.stops[step])
         # generation
         if args.method_generate == 'sample':
             new_ys = [get_samples(task, x, y, args.n_generate_sample, prompt_sample=args.prompt_sample, stop=task.stops[step]) for y in ys]

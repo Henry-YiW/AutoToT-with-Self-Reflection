@@ -1,6 +1,11 @@
 import os
 import openai
 import backoff 
+import replicate
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 completion_tokens = prompt_tokens = 0
 
@@ -43,3 +48,34 @@ def gpt_usage(backend="gpt-4"):
     elif backend == "gpt-3.5-turbo":
         cost = completion_tokens / 1000 * 0.002 + prompt_tokens / 1000 * 0.0015
     return {"completion_tokens": completion_tokens, "prompt_tokens": prompt_tokens, "cost": cost}
+
+def join_tokens(response):
+    if isinstance(response, list):
+        return ''.join(response)
+    return response
+
+@backoff.on_exception(backoff.expo, openai.error.OpenAIError)
+def completions_with_backoff_for_replicate(model_name, prompt, max_length=1000, temperature=0.7, top_p=0.9):
+    return replicate.run(
+        model_name,
+        input={"prompt": prompt, "max_length": max_length, "temperature": temperature, "top_p": top_p}
+    )
+
+def replicate_run(prompt, model_name, max_length=1000, temperature=0.7, top_p=0.9):
+    response = replicate.run(
+        model_name,
+        input={"prompt": prompt, "max_length": max_length, "temperature": temperature, "top_p": top_p}
+    )
+    response_text = join_tokens(response)
+    global completion_tokens, prompt_tokens
+    outputs = []
+    while n > 0:
+        cnt = min(n, 20)
+        n -= cnt
+        res = completions_with_backoff_for_replicate(model_name, prompt, max_length=max_length, temperature=temperature, top_p=top_p)
+        response_text = join_tokens(res)
+        outputs.extend([response_text])
+        # log completion tokens
+        completion_tokens += len(response_text) # res["usage"]["completion_tokens"]
+        prompt_tokens += len(prompt) # res["usage"]["prompt_tokens"]
+    return outputs

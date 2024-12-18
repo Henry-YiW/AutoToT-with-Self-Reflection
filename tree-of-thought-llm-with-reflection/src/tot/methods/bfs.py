@@ -31,8 +31,15 @@ def get_votes(task, x, ys, n_evaluate_sample):
     values = task.vote_outputs_unwrap(vote_outputs, len(ys))
     return values
 
-def get_proposals(task, x, y): 
+def rank_reflection(reflection_memory):
+    path = {"parent-path": '0-3-5-7', "reflection": "reflection content"}
+    current_state_parent_path = '0-3-5-7-9'
+
+
+def get_proposals(task, x, y, reflection_memory): 
     propose_prompt = task.propose_prompt_wrap(x, y)
+    if propose_prompt in reflection_memory:
+        return reflection_memory[-5:0]
     proposals = gpt(propose_prompt, n=1, stop=None)[0].split('\n')
     return [y + _ + '\n' for _ in proposals]
 
